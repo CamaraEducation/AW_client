@@ -40,11 +40,12 @@ function updateLastDate(){
 function init(){
     config();
     $lastDate = getLastDate();
+    $devicename = file_get_contents('config');
 
     // computer usage data
     manicData(
         "computer.json",
-        "select b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, json_extract( a.datastr, '$.status') as status
+        "select '$devicename' as devicename, b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, json_extract( a.datastr, '$.status') as status
         from eventmodel a
         join bucketmodel b on b.key = a.bucket_id
         where a.bucket_id = 2 and a.timestamp > '$lastDate';"
@@ -53,7 +54,7 @@ function init(){
     // application usage data
     manicData(
         "application.json",
-        "select b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, 
+        "select '$devicename' as devicename, b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, 
 		json_extract( a.datastr, '$.app') as app,
 		json_extract( a.datastr, '$.title') as title
 		from eventmodel a

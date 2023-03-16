@@ -1,1 +1,0 @@
-php manic.php

@@ -1,27 +1,27 @@
 <?php
 
-define('SERVER', 'http://172.16.10.234/manicdata/file.php');
-define('MANICDB', '/home/camaraadmin/.local/share/activitywatch/aw-server/peewee-sqlite.v2.db');
+define('SERVER', 'http://172.16.10.234/awdata/file.php');
+define('AWDB', '/home/camara/.local/share/activitywatch/aw-server/peewee-sqlite.v2.db');
 
 // retrieve the last recorded date
 function getLastDate(){
-    $db = new SQLite3('ManicTimeLastExport.db');
+    $db = new SQLite3('AWTimeLastExport.db');
     $res = $db->query("SELECT last_date from export_date where id=1");
     return $res->fetchArray()[0];
 }
 
-// function to export Manic Files
-function manicData($file, $query){
+// function to export aw Files
+function awData($file, $query){
     $date = getLastDate();
 
     // prepare the database
-    $manicdb = new SQLite3(MANICDB);
+    $awdb = new SQLite3(AWDB);
 
-    $result = $manicdb->query($query);
+    $result = $awdb->query($query);
     while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
         $data[] = $row;
     }
-    $manicdb->close();
+    $awdb->close();
 
     isset($data) ? $jsonData = json_encode($data) : $jsonData ='';
     
@@ -31,7 +31,7 @@ function manicData($file, $query){
 function updateLastDate(){
     $datetime = new DateTime("now", new DateTimeZone("UTC"));
     $last = $datetime->format('Y-m-d h:i:s.uP');
-    $db = new SQLite3('ManicTimeLastExport.db');
+    $db = new SQLite3('AWTimeLastExport.db');
     $query = "UPDATE export_date SET last_date='$last' WHERE id=1";
     $db->exec($query);
     $db->close();
@@ -43,7 +43,7 @@ function init(){
     $devicename = file_get_contents('config');
 
     // computer usage data
-    manicData(
+    awData(
         "computer.json",
         "select '$devicename' as devicename, b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, json_extract( a.datastr, '$.status') as status
         from eventmodel a
@@ -52,7 +52,7 @@ function init(){
     );
 
     // application usage data
-    manicData(
+    awData(
         "application.json",
         "select '$devicename' as devicename, b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, 
 		json_extract( a.datastr, '$.app') as app,
@@ -63,7 +63,7 @@ function init(){
     );
 
     // documets usage data
-    // manicData(
+    // awData(
     //     "document.json",
     //     "select c.DeviceName ,a.Name, a.StartLocalTime, a.EndLocalTime, ROUND((JULIANDAY(a.EndLocalTime) - JULIANDAY(a.StartLocalTime)) * 86400) / 60 AS Duration from Ar_Activity a JOIN Ar_Timeline b on a.ReportId = b.ReportId JOIN Ar_Environment c on b.EnvironmentId = c.EnvironmentId where a.ReportId = 4 and StartLocalTime > '$lastDate'"
     // );
@@ -75,7 +75,7 @@ function init(){
 function streamData(){
 
     $client_name = file_get_contents('config');
-    $url = 'http://172.16.10.234/manicdata/file.php';
+    $url = 'http://172.16.10.234/awdata/file.php';
     $file1 = new CURLFile('computer.json');
     $file2 = new CURLFile('application.json');
     // $file3 = new CURLFile('document.json');
@@ -103,7 +103,7 @@ function streamData(){
 
 function config(){
 
-    $url = 'http://172.16.10.234/manicdata/config.php';
+    $url = 'http://172.16.10.234/awdata/config.php';
 
     // file config.json does not exist send get request to url
     if (!file_exists('config')) {

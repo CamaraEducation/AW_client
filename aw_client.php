@@ -42,13 +42,28 @@ function init(){
     $lastDate = getLastDate();
     $devicename = file_get_contents('config');
 
+    //identify which key belongs to which watcher
+    $watcher_awdb = new SQLite3(AWDB);
+    $watcher_query = "SELECT key FROM bucketmodel WHERE client = 'aw-watcher-afk'";
+    $watcher_result = $watcher_awdb->query($watcher_query);
+    while ($watcher_row = $watcher_result->fetchArray(SQLITE3_ASSOC)) {
+        $watcher_key = $watcher_row['key'];
+    }
+    if ($watcher_key==1) {
+        $ckey = 1;
+        $akey = 2;
+    } else {
+        $ckey = 2;
+        $akey = 1;
+    }
+
     // computer usage data
     awData(
         "computer.json",
         "select '$devicename' as devicename, b.hostname, a.duration, strftime('%Y-%m-%d %H:%M:%S', a.timestamp) as datetimeadded, b.id, json_extract( a.datastr, '$.status') as status
         from eventmodel a
         join bucketmodel b on b.key = a.bucket_id
-        where a.bucket_id = 2 and a.timestamp > '$lastDate';"
+        where a.bucket_id = '$ckey' and a.timestamp > '$lastDate';"
     );
 
     // application usage data
@@ -59,7 +74,7 @@ function init(){
 		json_extract( a.datastr, '$.title') as title
 		from eventmodel a
 		join bucketmodel b on b.key = a.bucket_id
-		where a.bucket_id = 1 and a.timestamp > '$lastDate';"
+		where a.bucket_id = '$akey' and a.timestamp > '$lastDate';"
     );
 
     // documets usage data

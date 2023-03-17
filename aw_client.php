@@ -29,8 +29,8 @@ function manicData($file, $query){
 }
 
 function updateLastDate(){
-    date_default_timezone_set("UTC");
-    $last = date('Y-m-d h:i:s');
+    $datetime = new DateTime("now", new DateTimeZone("UTC"));
+    $last = $datetime->format('Y-m-d h:i:s.uP');
     $db = new SQLite3('ManicTimeLastExport.db');
     $query = "UPDATE export_date SET last_date='$last' WHERE id=1";
     $db->exec($query);

@@ -1,1 +1,1 @@
-php manic.php
+php aw_client.php
